@@ -1,13 +1,19 @@
 const axios = require('axios');
+const crypto = require('crypto');
 const { generateHash } = require('../utils/generateHash');
 const { merchantCode, secretKey } = require('../config/keys');
 
 exports.processPayment = async (req, res) => {
     const { name, email, amount } = req.body;
-    const date = new Date().toISOString();
-    const hash = generateHash(merchantCode, amount, date, secretKey);
 
-    // Payment data
+    // Generate the current date in ISO 8601 format
+    const date = new Date().toISOString();
+
+    const dataString = `${merchantCode}${amount}USD${date}`;
+    const hash = crypto.createHmac('sha256', secretKey)
+                       .update(dataString)
+                       .digest('hex');
+
     const paymentData = {
         "merchantCode": merchantCode,
         "currency": "USD",
@@ -15,7 +21,7 @@ exports.processPayment = async (req, res) => {
         "billingAddress": {
             "name": name,
             "email": email,
-        },
+        }
     };
 
     try {
@@ -27,7 +33,7 @@ exports.processPayment = async (req, res) => {
         });
         res.send('Payment processed successfully!');
     } catch (error) {
-        console.error(error.response.data);
-        res.send('Payment failed.');
+        console.error('Error:', error.response ? error.response.data : error.message);
+        res.status(401).send('Payment failed. Please check your credentials and try again.');
     }
 };
