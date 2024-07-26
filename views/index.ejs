@@ -7,25 +7,29 @@
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
         .custom-input {
-            background-color: #f1f3f5; /* Light gray background */
-            border-radius: 8px; /* Rounded corners */
-            padding: 12px 20px; /* Padding inside the input */
-            width: 100%; /* Full width */
-            border: none; /* No border */
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-            transition: box-shadow 0.3s ease; /* Smooth shadow transition */
+            background-color: #f1f3f5;
+            border-radius: 8px;
+            padding: 12px 20px;
+            width: 100%;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            transition: box-shadow 0.3s ease;
         }
         .custom-input:focus {
-            outline: none; /* Remove default focus outline */
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Darker shadow on focus */
+            outline: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
         }
         .input-container {
             position: relative;
-            margin-bottom: 1rem; /* Space between inputs */
+            margin-bottom: 1rem;
         }
         .inline-container {
             display: flex;
-            gap: 1rem; /* Space between elements */
+            gap: 1rem;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.875rem;
         }
     </style>
 </head>
@@ -33,32 +37,139 @@
     <div class="container mx-auto px-4 py-12">
         <h1 class="text-center text-3xl font-bold mb-6">2Checkout Payment Form</h1>
         <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-            <form action="/process-payment" method="POST">
+            <form action="/process-payment" method="POST" id="payment-form">
+                <div id="error-container"></div>
                 <div class="input-container">
                     <label for="name" class="block text-sm font-medium text-gray-700">Name on card</label>
-                    <input type="text" id="name" name="name" class="custom-input" placeholder="John Doe" required>
+                    <input type="text" id="name" name="name" class="custom-input" placeholder="John Doe" required minlength="2">
+                    <div class="error-message" id="nameError"></div>
+                </div>
+                <div class="input-container">
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" class="custom-input" placeholder="john.doe@example.com" required>
+                    <div class="error-message" id="emailError"></div>
                 </div>
                 <div class="input-container">
                     <label for="cardNumber" class="block text-sm font-medium text-gray-700">Card number</label>
-                    <input type="text" id="cardNumber" name="cardNumber" class="custom-input" placeholder="1234 5678 9012 3456" required>
+                    <input type="text" id="cardNumber" name="cardNumber" class="custom-input" placeholder="1234 5678 9012 3456" required pattern="\d{16}" maxlength="16" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 16)">
+                    <div class="error-message" id="cardNumberError"></div>
                 </div>
                 <div class="inline-container">
                     <div class="input-container">
                         <label for="expMonth" class="block text-sm font-medium text-gray-700">Expiry Month</label>
-                        <input type="text" id="expMonth" name="expMonth" class="custom-input" placeholder="MM" required>
+                        <input type="text" id="expMonth" name="expMonth" class="custom-input" placeholder="MM" required pattern="\d{2}" maxlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2)">
+                        <div class="error-message" id="expMonthError"></div>
                     </div>
                     <div class="input-container">
                         <label for="expYear" class="block text-sm font-medium text-gray-700">Expiry Year</label>
-                        <input type="text" id="expYear" name="expYear" class="custom-input" placeholder="YY" required>
+                        <input type="text" id="expYear" name="expYear" class="custom-input" placeholder="YY" required pattern="\d{2}" maxlength="2" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 2)">
+                        <div class="error-message" id="expYearError"></div>
                     </div>
                     <div class="input-container">
                         <label for="cvv" class="block text-sm font-medium text-gray-700">CVC</label>
-                        <input type="text" id="cvv" name="cvv" class="custom-input" placeholder="123" required>
+                        <input type="text" id="cvv" name="cvv" class="custom-input" placeholder="123" required pattern="\d{3,4}" maxlength="4" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 4)">
+                        <div class="error-message" id="cvvError"></div>
                     </div>
+                </div>
+                <div class="input-container">
+                    <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
+                    <input type="number" id="amount" name="amount" class="custom-input" placeholder="Amount" required min="0.01" step="0.01">
+                    <div class="error-message" id="amountError"></div>
                 </div>
                 <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Pay Now</button>
             </form>
         </div>
     </div>
+
+    <script>
+        document.getElementById('payment-form').addEventListener('input', function (event) {
+            validateField(event.target);
+        });
+
+        function validateField(field) {
+            let isValid = true;
+            let errorMessage = '';
+
+            switch (field.name) {
+                case 'name':
+                    if (!field.value.trim()) {
+                        isValid = false;
+                        errorMessage = 'Name is required.';
+                    }
+                    break;
+                case 'email':
+                    if (!validateEmail(field.value)) {
+                        isValid = false;
+                        errorMessage = 'Valid email is required.';
+                    }
+                    break;
+                case 'cardNumber':
+                    if (!validateCardNumber(field.value)) {
+                        isValid = false;
+                        errorMessage = 'Valid card number is required.';
+                    }
+                    break;
+                case 'expMonth':
+                    if (!validateExpMonth(field.value)) {
+                        isValid = false;
+                        errorMessage = 'Valid expiration month is required (01-12).';
+                    }
+                    break;
+                case 'expYear':
+                    if (!validateExpYear(field.value)) {
+                        isValid = false;
+                        errorMessage = 'Valid expiration year is required.';
+                    }
+                    break;
+                case 'cvv':
+                    if (!validateCVV(field.value)) {
+                        isValid = false;
+                        errorMessage = 'Valid CVV is required (3-4 digits).';
+                    }
+                    break;
+                case 'amount':
+                    if (!field.value || isNaN(field.value) || parseFloat(field.value) <= 0) {
+                        isValid = false;
+                        errorMessage = 'Amount must be greater than zero.';
+                    }
+                    break;
+                default:
+                    break;
+            }
+
+            displayError(field.name, errorMessage);
+            return isValid;
+        }
+
+        function displayError(fieldName, message) {
+            document.getElementById(fieldName + 'Error').innerText = message;
+        }
+
+        function validateEmail(email) {
+            const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+            return re.test(String(email).toLowerCase());
+        }
+
+        function validateCardNumber(cardNumber) {
+            const re = /^\d{16}$/;
+            return re.test(cardNumber);
+        }
+
+        function validateExpMonth(expMonth) {
+            const month = parseInt(expMonth, 10);
+            return !isNaN(month) && month >= 1 && month <= 12;
+        }
+
+        function validateExpYear(expYear) {
+            const year = parseInt(expYear, 10);
+            const currentYear = new Date().getFullYear() % 100;
+            return !isNaN(year) && year >= currentYear && year <= 99;
+        }
+
+        function validateCVV(cvv) {
+            const re = /^\d{3,4}$/;
+            return re.test(cvv);
+        }
+    </script>
 </body>
 </html>
