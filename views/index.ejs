@@ -3,32 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Response</title>
+    <title>2Checkout Payment</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .custom-input {
+            background-color: #f1f3f5; /* Light gray background */
+            border-radius: 8px; /* Rounded corners */
+            padding: 12px 20px; /* Padding inside the input */
+            width: 100%; /* Full width */
+            border: none; /* No border */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+            transition: box-shadow 0.3s ease; /* Smooth shadow transition */
+        }
+        .custom-input:focus {
+            outline: none; /* Remove default focus outline */
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3); /* Darker shadow on focus */
+        }
+        .input-container {
+            position: relative;
+            margin-bottom: 1rem; /* Space between inputs */
+        }
+        .inline-container {
+            display: flex;
+            gap: 1rem; /* Space between elements */
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-12">
-        <h1 class="text-center text-3xl font-bold mb-6">Payment Response</h1>
-        <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
-            <% if (errors) { %>
-                <h2 class="text-red-600 text-xl mb-4">Validation Errors</h2>
-                <ul>
-                    <% errors.forEach(error => { %>
-                        <li><%= error.msg %></li>
-                    <% }) %>
-                </ul>
-            <% } else if (cardInfo) { %>
-                <h2 class="text-green-600 text-xl mb-4">Card Details</h2>
-                <p><strong>Card Type:</strong> <%= cardInfo.cardType %></p>
-                <p><strong>Last Four Digits:</strong> <%= cardInfo.lastFour %></p>
-                <p><strong>Expiration Date:</strong> <%= cardInfo.expDate %></p>
-            <% } else { %>
-                <h2 class="text-red-600 text-xl mb-4">Error:</h2>
-                <pre><%= error %></pre>
-            <% } %>
-            <div class="text-center mt-4">
-                <a href="/" class="text-indigo-600 hover:underline">Return to Home</a>
-            </div>
+        <h1 class="text-center text-3xl font-bold mb-6">2Checkout Payment Form</h1>
+        <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+            <form action="/process-payment" method="POST">
+                <div class="input-container">
+                    <label for="name" class="block text-sm font-medium text-gray-700">Name on card</label>
+                    <input type="text" id="name" name="name" class="custom-input" placeholder="John Doe" required>
+                </div>
+                <div class="input-container">
+                    <label for="cardNumber" class="block text-sm font-medium text-gray-700">Card number</label>
+                    <input type="text" id="cardNumber" name="cardNumber" class="custom-input" placeholder="1234 5678 9012 3456" required>
+                </div>
+                <div class="inline-container">
+                    <div class="input-container">
+                        <label for="expMonth" class="block text-sm font-medium text-gray-700">Expiry Month</label>
+                        <input type="text" id="expMonth" name="expMonth" class="custom-input" placeholder="MM" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="expYear" class="block text-sm font-medium text-gray-700">Expiry Year</label>
+                        <input type="text" id="expYear" name="expYear" class="custom-input" placeholder="YY" required>
+                    </div>
+                    <div class="input-container">
+                        <label for="cvv" class="block text-sm font-medium text-gray-700">CVC</label>
+                        <input type="text" id="cvv" name="cvv" class="custom-input" placeholder="123" required>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">Pay Now</button>
+            </form>
         </div>
     </div>
 </body>
