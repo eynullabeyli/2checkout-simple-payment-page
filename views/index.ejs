@@ -94,15 +94,13 @@
             </form>
         </div>
     </div>
-
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
-        const cardNetworkImage = document.getElementById('cardNetworkImage');
-
         function checkCardNetwork(input) {
-            const cardNumber = input.value;
+            const cardNumber = $(input).val();
             let network = '';
             let iconClass = '';
-
+    
             if (/^4/.test(cardNumber)) {
                 network = 'visa';
                 iconClass = 'fab fa-cc-visa';
@@ -119,63 +117,57 @@
                 network = 'jcb';
                 iconClass = 'fab fa-cc-jcb';
             }
-
-            const cardNetworkIcon = document.getElementById('cardNetworkIcon');
-            if (network) {
-                cardNetworkIcon.className = iconClass;
-            } else {
-                cardNetworkIcon.className = '';
-            }
+    
+            $('#cardNetworkIcon').attr('class', iconClass);
         }
-
-        
-        document.getElementById('payment-form').addEventListener('input', function (event) {
+    
+        $('#payment-form').on('input', function (event) {
             validateField(event.target);
         });
-
+    
         function validateField(field) {
             let isValid = true;
             let errorMessage = '';
-
+    
             switch (field.name) {
                 case 'name':
-                    if (!field.value.trim()) {
+                    if (!$(field).val().trim()) {
                         isValid = false;
                         errorMessage = 'Name is required.';
                     }
                     break;
                 case 'email':
-                    if (!validateEmail(field.value)) {
+                    if (!validateEmail($(field).val())) {
                         isValid = false;
                         errorMessage = 'Valid email is required.';
                     }
                     break;
                 case 'cardNumber':
-                    if (!validateCardNumber(field.value)) {
+                    if (!validateCardNumber($(field).val())) {
                         isValid = false;
                         errorMessage = 'Valid card number is required.';
                     }
                     break;
                 case 'expMonth':
-                    if (!validateExpMonth(field.value)) {
+                    if (!validateExpMonth($(field).val())) {
                         isValid = false;
                         errorMessage = 'Valid expiration month is required (01-12).';
                     }
                     break;
                 case 'expYear':
-                    if (!validateExpYear(field.value)) {
+                    if (!validateExpYear($(field).val())) {
                         isValid = false;
                         errorMessage = 'Valid expiration year is required.';
                     }
                     break;
                 case 'cvv':
-                    if (!validateCVV(field.value)) {
+                    if (!validateCVV($(field).val())) {
                         isValid = false;
                         errorMessage = 'Valid CVV is required (3-4 digits).';
                     }
                     break;
                 case 'amount':
-                    if (!field.value || isNaN(field.value) || parseFloat(field.value) <= 0) {
+                    if (!$(field).val() || isNaN($(field).val()) || parseFloat($(field).val()) <= 0) {
                         isValid = false;
                         errorMessage = 'Amount must be greater than zero.';
                     }
@@ -183,97 +175,90 @@
                 default:
                     break;
             }
-
+    
             displayError(field.name, errorMessage);
             return isValid;
         }
-
+    
         function displayError(fieldName, message) {
-            document.getElementById(fieldName + 'Error').innerText = message;
+            $('#' + fieldName + 'Error').text(message);
         }
-
+    
         function validateEmail(email) {
             const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
             return re.test(String(email).toLowerCase());
         }
-
+    
         function formatCardNumber(input) {
-            let value = input.value.replace(/\D/g, '');
+            let value = $(input).val().replace(/\D/g, '');
             const maxLength = /^3[47]/.test(value) ? 15 : 16;
             value = value.slice(0, maxLength);
             const formattedValue = value.replace(/(\d{4})(?=\d)/g, '$1 ');
-            input.value = formattedValue.trim();
-            input.setAttribute('data-raw-value', value);
-
+            $(input).val(formattedValue.trim()).attr('data-raw-value', value);
+    
             if (value.length === maxLength) {
                 autoTabToNext(input);
             }
         }
-
+    
         function autoTabToNext(input) {
-            const formElements = Array.from(input.form.elements);
-            const index = formElements.indexOf(input);
+            const formElements = $(input).closest('form').find(':input');
+            const index = formElements.index(input);
             if (index > -1 && index < formElements.length - 1) {
-                formElements[index + 1].focus();
+                formElements.eq(index + 1).focus();
             }
         }
-
+    
         function formatExpiryMonth(input) {
-            let value = input.value.replace(/\D/g, '');
-            input.value = value.slice(0, 2);
+            let value = $(input).val().replace(/\D/g, '');
+            $(input).val(value.slice(0, 2));
             if (value.length === 2 && validateExpMonth(value)) {
                 autoTabToNext(input);
             }
         }
-
+    
         function formatExpiryYear(input) {
-            let value = input.value.replace(/\D/g, '');
-            input.value = value.slice(0, 2);
+            let value = $(input).val().replace(/\D/g, '');
+            $(input).val(value.slice(0, 2));
             if (value.length === 2 && validateExpYear(value)) {
                 autoTabToNext(input);
             }
         }
-
+    
         function formatCVV(input) {
-            let value = input.value.replace(/\D/g, '');
-            input.value = value.slice(0, 4);
+            let value = $(input).val().replace(/\D/g, '');
+            $(input).val(value.slice(0, 4));
             if ((value.length === 3 || value.length === 4) && validateCVV(value)) {
                 autoTabToNext(input);
             }
         }
-
-        function validateCardNumber(input) {
-            if (!input) {
-                console.error("Input element is undefined.");
-                return false;
-            }
-
-            let value = input.getAttribute('data-raw-value') || input.value.replace(/\D/g, '');
+    
+        function validateCardNumber(value) {
             if (!value) {
                 console.error("Card number value is undefined or empty.");
                 return false;
             }
-
+    
+            value = value.replace(/\D/g, '');
             const re = /^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|6(?:011|5[0-9]{2})[0-9]{12}|35[0-9]{14})$/;
             return re.test(value);
         }
-
+    
         function validateExpMonth(expMonth) {
             const month = parseInt(expMonth, 10);
             return !isNaN(month) && month >= 1 && month <= 12;
         }
-
+    
         function validateExpYear(expYear) {
             const year = parseInt(expYear, 10);
             const currentYear = new Date().getFullYear() % 100;
             return !isNaN(year) && year >= currentYear && year <= 99;
         }
-
+    
         function validateCVV(cvv) {
             const re = /^\d{3,4}$/;
             return re.test(cvv);
         }
-
-</script>
+    </script>
 </body>
 </html>
