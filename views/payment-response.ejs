@@ -4,31 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Payment Response</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Include any required CSS/JS files here -->
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto px-4 py-12">
+<body>
+    <div class="container">
         <h1 class="text-center text-3xl font-bold mb-6">Payment Response</h1>
         <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
-            <% if (errors) { %>
+            <% if (errors && errors.length > 0) { %>
                 <h2 class="text-red-600 text-xl mb-4">Validation Errors</h2>
                 <ul>
                     <% errors.forEach(error => { %>
                         <li><%= error.msg %></li>
-                    <% }) %>
+                    <% }); %>
                 </ul>
+            <% } else if (error) { %>
+                <h2 class="text-red-600 text-xl mb-4">Error</h2>
+                <p><%= error %></p>
             <% } else if (cardInfo) { %>
-                <h2 class="text-green-600 text-xl mb-4">Card Details</h2>
-                <p><strong>Card Type:</strong> <%= cardInfo.cardType %></p>
-                <p><strong>Last Four Digits:</strong> <%= cardInfo.lastFour %></p>
-                <p><strong>Expiration Date:</strong> <%= cardInfo.expDate %></p>
-            <% } else { %>
-                <h2 class="text-red-600 text-xl mb-4">Error:</h2>
-                <pre><%= error %></pre>
+                <h2 class="text-green-600 text-xl mb-4">Payment Successful!</h2>
+                <p>Card Info: <%= JSON.stringify(cardInfo, null, 2) %></p>
             <% } %>
-            <div class="text-center mt-4">
-                <a href="/" class="text-indigo-600 hover:underline">Return to Home</a>
-            </div>
         </div>
     </div>
 </body>

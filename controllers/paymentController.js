@@ -17,7 +17,12 @@ const validatePayment = [
 exports.processPayment = [
     validatePayment,
     async (req, res) => {
-        // Extract validation errors
+        let apiUrl;
+        if (mode === 'test') {
+            apiUrl = 'https://api.sandbox.2checkout.com/rest/6.0/orders/';
+        } else {
+            apiUrl = 'https://api.2checkout.com/rest/6.0/orders/';
+        }
         const errors = validationResult(req);
         if (!errors.isEmpty()) {
             return res.status(400).render('payment-response', { errors: errors.array() });
@@ -51,7 +56,6 @@ exports.processPayment = [
                 }
             });
 
-            // Render the card details in the UI
             res.render('payment-response', { cardInfo: response.data });
         } catch (error) {
             console.error('Error:', error.response ? error.response.data : error.message);
