@@ -1,39 +1,61 @@
+const { body, validationResult } = require('express-validator');
 const axios = require('axios');
-const crypto = require('crypto');
 const { generateHash } = require('../utils/generateHash');
-const { merchantCode, secretKey } = require('../config/keys');
+const { merchantCode, secretKey, mode } = require('../config/keys');
 
-exports.processPayment = async (req, res) => {
-    const { name, email, amount } = req.body;
+// Define validation and sanitization rules
+const validatePayment = [
+    body('name').trim().escape().notEmpty().withMessage('Name is required'),
+    body('email').isEmail().normalizeEmail().withMessage('Valid email is required'),
+    body('cardNumber').isCreditCard().withMessage('Valid card number is required'),
+    body('expMonth').isInt({ min: 1, max: 12 }).withMessage('Valid expiration month is required'),
+    body('expYear').isInt({ min: new Date().getFullYear() % 100, max: 99 }).withMessage('Valid expiration year is required'),
+    body('cvv').isLength({ min: 3, max: 4 }).isNumeric().withMessage('Valid CVV is required'),
+    body('amount').isFloat({ gt: 0 }).withMessage('Amount must be greater than zero')
+];
 
-    // Generate the current date in ISO 8601 format
-    const date = new Date().toISOString();
-
-    const dataString = `${merchantCode}${amount}USD${date}`;
-    const hash = crypto.createHmac('sha256', secretKey)
-                       .update(dataString)
-                       .digest('hex');
-
-    const paymentData = {
-        "merchantCode": merchantCode,
-        "currency": "USD",
-        "amount": amount,
-        "billingAddress": {
-            "name": name,
-            "email": email,
+exports.processPayment = [
+    validatePayment,
+    async (req, res) => {
+        // Extract validation errors
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).render('payment-response', { errors: errors.array() });
         }
-    };
 
-    try {
-        const response = await axios.post('https://api.2checkout.com/rest/6.0/orders/', paymentData, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Avangate-Authentication': `code=${merchantCode}, date=${date}, hash=${hash}`
+        const { name, email, cardNumber, expMonth, expYear, cvv, amount } = req.body;
+        const date = new Date().toISOString();
+        const hash = generateHash(merchantCode, amount, date, secretKey);
+
+        const paymentData = {
+            "merchantCode": merchantCode,
+            "currency": "USD",
+            "amount": amount,
+            "billingAddress": {
+                "name": name,
+                "email": email,
+            },
+            "paymentMethod": {
+                "cardNumber": cardNumber,
+                "expMonth": expMonth,
+                "expYear": expYear,
+                "cvv": cvv
             }
-        });
-        res.send('Payment processed successfully!');
-    } catch (error) {
-        console.error('Error:', error.response ? error.response.data : error.message);
-        res.status(401).send('Payment failed. Please check your credentials and try again.');
+        };
+
+        try {
+            const response = await axios.post(apiUrl, paymentData, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Avangate-Authentication': `code=${merchantCode}, date=${date}, hash=${hash}`
+                }
+            });
+
+            // Render the card details in the UI
+            res.render('payment-response', { cardInfo: response.data });
+        } catch (error) {
+            console.error('Error:', error.response ? error.response.data : error.message);
+            res.render('payment-response', { error: error.response ? error.response.data : error.message });
+        }
     }
-};
+];

@@ -10,14 +10,7 @@
     <div class="container mx-auto px-4 py-12">
         <h1 class="text-center text-3xl font-bold mb-6">Payment Response</h1>
         <div class="max-w-3xl mx-auto bg-white rounded-lg shadow-md p-6">
-            <% if (errors) { %>
-                <h2 class="text-red-600 text-xl mb-4">Validation Errors</h2>
-                <ul>
-                    <% errors.forEach(error => { %>
-                        <li><%= error.msg %></li>
-                    <% }) %>
-                </ul>
-            <% } else if (cardInfo) { %>
+            <% if (cardInfo) { %>
                 <h2 class="text-green-600 text-xl mb-4">Card Details</h2>
                 <p><strong>Card Type:</strong> <%= cardInfo.cardType %></p>
                 <p><strong>Last Four Digits:</strong> <%= cardInfo.lastFour %></p>
